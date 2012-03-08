@@ -1,0 +1,77 @@
+
+Compiling
+=========
+
+Adjust compiler and linker path in the file Makefile.shortrun to meet your
+configuration.
+
+CC			= gcc
+LINKER			= gcc
+
+Then it has to be build with:
+
+$ make -f Makefile.shortrun
+rm -f potts3-cpu *.o
+gcc -c potts3-cpu.c -O3 -std=c99 -Wall -Wextra -ffast-math -march=native -funroll-loops  -DQ=9 -DL=1024 -DSAMPLES=1 -DTEMP_MIN=0.71f -DTEMP_MAX=0.72f -DDELTA_TEMP=0.005f -DTRAN=20 -DTMAX=80 -DDELTA_T=5
+gcc -o potts3-cpu  potts3-cpu.o -lm
+
+To clean up the compilation:
+
+$ make -f Makefile.shortrun clean
+
+Since it has no major dependencies, it can be compiled with various versions of gcc and icc.
+We have compiled it with gcc-4.{2,4} and icc-{10,11}.
+
+
+Running
+=======
+
+From the command line type:
+
+$./potts3-cpu
+# Q: 9
+# L: 1024
+# Number of Samples: 1
+# Minimum Temperature: 0.710000
+# Maximum Temperature: 0.720000
+# Temperature Step: 0.004999999888
+# Equilibration Time: 20
+# Measurement Time: 80
+# Data Acquiring Step: 5
+# Number of Points: 3
+# Configure RNG Time (sec): 0.143489
+# Total Simulation Time (sec): 9.006227
+# Temp	E	E^2	E^4	M	M^2	M^4
+0.710000	-1.7854374051	3.1884153976	10.1741105793	0.9240136221	0.8539244416	0.7296119518
+0.715000	-1.7317543626	2.9990124720	8.9945475848	0.8980253637	0.8064609789	0.6504161848
+0.720000	-1.6951516271	2.8735780944	8.2579005895	0.8787527531	0.7722194692	0.5963633431
+
+
+Benchmarking
+============
+
+First define the undefined preprocessor symbols in potts3-cpu.c
+
+#define DETERMINISTIC_WRITE
+#define PROFILE_SPINFLIP
+
+Then run the script, it shows Q, L, spin flip time (ns) average and standard
+deviation of 60 samples.
+
+$ ./run_q_l_spinflip.sh
+9 512 22.8149 0.0640324
+9 1024 22.8216 0.0649756
+9 2048 22.8247 0.0674529
+9 4096 22.8697 0.0655559
+9 8192 22.8368 0.0633201
+9 16384 22.8598 0.0592176
+9 32768 22.8566 0.0583798
+
+It needs awk and bc, that are freely available for most OSs.
+
+
+Contact
+=======
+
+For bugs, suggestions or questions please write to:
+{ferrero,jde,nicolasw,cannas}_at_famaf.unc.edu.ar

@@ -1,0 +1,107 @@
+
+Compiling
+=========
+
+Adjust in the file Makefile.shortrun the lines below to meet your configuration.
+
+CUDA_INSTALL_PATH      = /opt/cuda
+CUDASDK_INSTALL_PATH   = /opt/cudasdk
+
+Then it has to be build with:
+
+$ make -f Makefile.shortrun
+rm -f potts3 *.o *.linkinfo cuda_profile_?.log
+/opt/cuda/bin/nvcc -O3 -arch=sm_13 --ptxas-options=-v --use_fast_math -c potts3.cu -DQ=9 -DL=1024 -DSAMPLES=3 -DTEMP_MIN=0.71f -DTEMP_MAX=0.73f -DDELTA_TEMP=0.002f -DTRAN=2000 -DTMAX=8000 -DDELTA_T=50 -I. -I/opt/cuda/include -I/opt/cudasdk/C/common/inc
+ptxas info    : Compiling entry function '_Z10sumupMCUDAPj' for 'sm_13'
+ptxas info    : Used 9 registers, 9224+16 bytes smem, 8 bytes cmem[14]
+ptxas info    : Compiling entry function '_Z10sumupECUDAPj' for 'sm_13'
+ptxas info    : Used 4 registers, 2056+16 bytes smem, 8 bytes cmem[14]
+ptxas info    : Compiling entry function '_Z13calculateCUDAPKhS0_PjS1_' for 'sm_13'
+ptxas info    : Used 9 registers, 72+16 bytes smem, 24 bytes cmem[1], 8 bytes cmem[14]
+ptxas info    : Compiling entry function '_Z10updateCUDAfjPhPKh' for 'sm_13'
+ptxas info    : Used 21 registers, 24+16 bytes smem, 28 bytes cmem[1], 8 bytes cmem[14]
+gcc -o potts3  potts3.o  -lrt -lm -lcudart -I. -I/opt/cuda/include -I/opt/cudasdk/C/common/inc -L/opt/cuda/lib64 -L/opt/cudasdk/C/lib
+
+To clean up the compilation:
+
+$ make -f Makefile.shortrun clean
+
+It has been succesfully compiled with CUDA 2.1 and above using Compute
+Capability (CC) 1.3 and 2.0.
+It needs at least CC 1.2 since it uses integer atomic increment operating
+on 32-bit words in shared memory, although it has not been tested on it.
+
+
+Running
+=======
+
+If the NVIDIA driver is properly setup and you have permissions on
+/dev/nvidia{0,1,ctl}. This could be checked running:
+
+$ nvidia-smi
+
+==============NVSMI LOG==============
+
+
+Timestamp			: Wed Jan  5 12:12:42 2011
+
+Driver Version			: 260.19.21
+
+
+For a GTX 280 the command and its output is as follows:
+
+$./potts3
+# Q: 9
+# L: 1024
+# Number of Samples: 3
+# Minimum Temperature: 0.710000
+# Maximum Temperature: 0.730000
+# Temperature Step: 0.002
+# Equilibration Time: 2000
+# Measurement Time: 8000
+# Data Acquiring Step: 50
+# Number of Points: 11
+# Configure RNG Time (sec): 0.075567
+# Total Simulation Time (sec): 190.041782
+# Temp  E       E^2     E^4     M       M^2     M^4
+0.710000        -1.7382084568   3.0213714699    9.1287197612    0.8994777955    0.8090610859    0.6545823687
+0.712000        -1.7266286294   2.9812495195    8.8878856117    0.8934158757    0.7981929101    0.6371150601
+0.714000        -1.7135949254   2.9364108195    8.6225466819    0.8862484790    0.7854375003    0.6169156283
+0.716000        -1.6991343498   2.8870607011    8.3351560079    0.8780964099    0.7710544057    0.5945282907
+0.718000        -1.6811647773   2.8263198832    7.9881392028    0.8671654001    0.7519779887    0.5654773877
+0.720000        -1.6579805414   2.7489066578    7.5565667495    0.8520563133    0.7260037312    0.5270923532
+0.722000        -1.6211319109   2.6280831703    6.9069733747    0.8239592709    0.6789202700    0.4609635830
+0.724000        -1.5029535472   2.2602656585    5.1213270434    0.7087759376    0.5041957935    0.2578229267
+0.726000        -1.0986006717   1.2158660647    1.5237101344    0.1999027573    0.0590690529    0.0078597939
+0.728000        -0.9555019538   0.9129881856    0.8335627609    0.0026623733    0.0000079003    0.0000000001
+0.730000        -0.9408686082   0.8852374097    0.7836582739    0.0022586986    0.0000056965    0.0000000000
+
+It has been tested using NVIDIA Drivers 195 and above, and run in GTX 280, 470 and 480 boards.
+
+
+Benchmarking
+============
+
+First adjust the library path to CUDA in the script run_q_l_spinflip.sh
+
+export LD_LIBRARY_PATH="/opt/cuda/lib64"
+
+And then running it should be enough.
+Below there is an example on a GTX 280, showing Q, L, and spin flip time (ns)
+average and standard deviation of 400 samples.
+
+$ ./run_q_l_spinflip.sh
+9 512 0.54012 0.00719124
+9 1024 0.517726 0.00229183
+9 2048 0.494736 0.00125184
+9 4096 0.482883 0.00070395
+9 8192 0.479762 0.000653536
+
+It needs awk and bc, that are freely available for most OSs.
+
+
+Contact
+=======
+
+For bugs, suggestions or questions please write to:
+{ferrero,jde,nicolasw,cannas}_at_famaf.unc.edu.ar

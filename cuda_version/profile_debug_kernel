@@ -1,0 +1,11 @@
+gpustarttimestamp
+gpuendtimestamp
+gridsize
+threadblocksize
+dynsmemperblock
+stasmemperblock
+regperthread
+memtransferdir
+memtransfersize
+memtransferhostmemtype
+streamid
